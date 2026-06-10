@@ -1642,7 +1642,44 @@ const TransferFlow = ({
     setAmount(a => (a + n).slice(0, 12));
   };
   const delNum = () => setAmount(a => a.slice(0, -1) || "");
-  const confirm = () => {
+  const confirm = async () => {
+    // Pedir huella dactilar antes de confirmar
+    try {
+      if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (available) {
+          // Registrar credencial si no existe, sino autenticar
+          const credId = localStorage.getItem('nx_cred_id');
+          if (!credId) {
+            // Primera vez: registrar huella
+            const reg = await navigator.credentials.create({
+              publicKey: {
+                challenge: crypto.getRandomValues(new Uint8Array(32)),
+                rp: { name: "Naranja X", id: window.location.hostname },
+                user: { id: new Uint8Array(16), name: "usuario", displayName: "Usuario" },
+                pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+                authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                timeout: 60000
+              }
+            });
+            localStorage.setItem('nx_cred_id', btoa(String.fromCharCode(...new Uint8Array(reg.rawId))));
+          } else {
+            // Autenticar con huella
+            const rawId = Uint8Array.from(atob(credId), c => c.charCodeAt(0));
+            await navigator.credentials.get({
+              publicKey: {
+                challenge: crypto.getRandomValues(new Uint8Array(32)),
+                allowCredentials: [{ id: rawId, type: "public-key", transports: ["internal"] }],
+                userVerification: "required",
+                timeout: 60000
+              }
+            });
+          }
+        }
+      }
+    } catch(e) {
+      if (e.name === "NotAllowedError") return; // usuario canceló → no continuar
+    }
     setStep("processing");
     setTimeout(() => {
       const now = new Date();

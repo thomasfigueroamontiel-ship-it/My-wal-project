@@ -24,13 +24,16 @@
 <body>
   <div id="root"></div>
   <script>
-    // Bloquear gestor de contraseñas en todos los inputs
+    // Bloquear gestor de contraseñas y sugerencias del teclado en todos los inputs
     document.addEventListener('DOMContentLoaded', blockPassManager);
     const _obs = new MutationObserver(blockPassManager);
     _obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
     function blockPassManager() {
       document.querySelectorAll('input').forEach(function(el) {
         el.setAttribute('autocomplete', 'new-password');
+        el.setAttribute('autocorrect', 'off');
+        el.setAttribute('autocapitalize', 'off');
+        el.setAttribute('spellcheck', 'false');
         el.setAttribute('data-form-type', 'other');
         el.setAttribute('data-lpignore', 'true');
         el.setAttribute('data-1p-ignore', 'true');

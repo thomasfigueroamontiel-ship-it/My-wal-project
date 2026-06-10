@@ -24,6 +24,23 @@
 <body>
   <div id="root"></div>
   <script>
+    // Bloquear gestor de contraseñas en todos los inputs
+    document.addEventListener('DOMContentLoaded', blockPassManager);
+    const _obs = new MutationObserver(blockPassManager);
+    _obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
+    function blockPassManager() {
+      document.querySelectorAll('input').forEach(function(el) {
+        el.setAttribute('autocomplete', 'new-password');
+        el.setAttribute('data-form-type', 'other');
+        el.setAttribute('data-lpignore', 'true');
+        el.setAttribute('data-1p-ignore', 'true');
+        if (el.type === 'password') el.type = 'text';
+      });
+      document.querySelectorAll('form').forEach(function(el) {
+        el.setAttribute('autocomplete', 'off');
+      });
+    }
+
     // Registrar Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js', { scope: './' })
@@ -694,7 +711,7 @@ const PinScreen = ({
     type: "tel",
     inputMode: "numeric",
     pattern: "[0-9]*",
-    autoComplete: "off",
+    autoComplete: "new-password", "data-form-type": "other", "data-lpignore": "true",
     autoCorrect: "off",
     autoCapitalize: "off",
     spellCheck: false,
@@ -913,7 +930,7 @@ const RegisterScreen = ({
     onChange: e => onChange(e.target.value),
     type: type,
     placeholder: placeholder,
-    autoComplete: "off",
+    autoComplete: "new-password", "data-form-type": "other", "data-lpignore": "true",
     autoCorrect: "off",
     autoCapitalize: "off",
     spellCheck: "false",
@@ -1055,7 +1072,7 @@ const RegisterScreen = ({
     icon: "lock",
     value: data.pass,
     onChange: v => update("pass", v),
-    type: showPass ? "text" : "password",
+    type: "text",
     placeholder: "M\xEDnimo 4 d\xEDgitos",
     extra: /*#__PURE__*/React.createElement("div", {
       onClick: () => setShowPass(!showPass),
@@ -1072,7 +1089,7 @@ const RegisterScreen = ({
     icon: "lock",
     value: data.pass2,
     onChange: v => update("pass2", v),
-    type: showPass ? "text" : "password",
+    type: "text",
     placeholder: "Repet\xED tu clave"
   })), error && /*#__PURE__*/React.createElement("div", {
     style: {
